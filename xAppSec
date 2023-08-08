@@ -1,0 +1,39 @@
+
+xApp_image=$1
+echo "Checking $xApp_image Registry"
+
+ret=`docker image ls $xApp_image`
+if [[ ! $ret =~ $xApp_image ]]; then
+    echo "No such Image"
+    echo "Pulling $xApp_image ..."
+    docker pull $xApp_image
+fi
+
+echo "Checking Registry Source ... "
+
+
+
+
+# extract docker image used by xApp config.json
+#CONTAINER_NUM=$(cat  ${CONFIG_JSON}  | jq -c ".containers" | jq length)
+
+#while [ $INDEX -lt  $CONTAINER_NUM ]
+#do
+#    REGISTRY=$(cat  ${CONFIG_JSON}  | jq -c ".containers[$INDEX].image.registry"| tr -d '"')
+#    NAME=$(cat  ${CONFIG_JSON}  | jq -c ".containers[$INDEX].image.name"| tr -d '"')
+#    TAG=$(cat  ${CONFIG_JSON}  | jq -c ".containers[$INDEX].image.tag" | tr -d '"')
+#        echo $REGISTRY
+#        echo $NAME
+#        echo $TAG
+#        docker pull "$REGISTRY/$NAME:$TAG"
+#    (( INDEX++ ))
+#done
+
+
+
+python3 Image_Security_Module/ImageRegistryCheck.py registry-check $xApp_image
+
+
+
+
+
