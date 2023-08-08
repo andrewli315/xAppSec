@@ -4,7 +4,7 @@ import click
 import time as timep
 from lib import tools
 from veinmind import *
-
+from white_list import white_List
 start = 0
 image_ids = []
 registry_List = []
@@ -13,7 +13,6 @@ decision = []
 
 
 # The registry whitelist is only "nexus3.o-ran-sc.org:10002" for now.
-while_List = ["nexus3.o-ran-sc.org:10002"]
 
 @command.group()
 @click.option('--format', default="stdout", help="output format e.g. stdout/json")

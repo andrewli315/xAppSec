@@ -1,17 +1,44 @@
+#!/bin/bash
 
-xApp_image=$1
-echo "Checking $xApp_image Registry"
 
-ret=`docker image ls $xApp_image`
-if [[ ! $ret =~ $xApp_image ]]; then
-    echo "No such Image"
-    echo "Pulling $xApp_image ..."
-    docker pull $xApp_image
+help() {
+    echo "xAppSec Usage:"
+    echo "./xAppSec [OPTIONS]"
+    echo ""
+    echo "[OPTIONS]"
+    echo "-w : Update registry whitelist for image scanner"
+    echo "-c : Check docker images security"
+    echo "-h : Help"
+}
+
+
+if [ $1 != "-w" ] && [ $1 != "-c" ]; then 
+    help
+    exit
 fi
 
-echo "Checking Registry Source ... "
+# Setup whiteList
+if [ $1 == "-w" ]; then
+    echo $2
+    exit
 
+elif [ $1 == "-c" ]; then  
+    xApp_image=$2
+    echo "Checking $xApp_image Registry"
 
+    ret=`docker image ls $xApp_image`
+    if [[ ! $ret =~ $xApp_image ]]; then
+        echo "No such Image"
+        echo "Pulling $xApp_image ..."
+        docker pull $xApp_image
+    fi
+
+    echo "Checking Registry Source ... "
+elif [ $1 == "-h" ]; then
+    help 
+else
+    help 
+fi
 
 
 # extract docker image used by xApp config.json
@@ -31,7 +58,7 @@ echo "Checking Registry Source ... "
 
 
 
-python3 Image_Security_Module/ImageRegistryCheck.py registry-check $xApp_image
+#python3 Image_Security_Module/ImageRegistryCheck.py registry-check $xApp_image
 
 
 
