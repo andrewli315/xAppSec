@@ -22,7 +22,7 @@ tcpObj = tcpwrapper.tcpwrapper()
 plugin_list = [crontabObj,bashrcObj,serviceObj,sshdObj,tcpObj]
 
 @command.group()
-@click.option('--format', default="stdout", help="output format e.g. stdout/json")
+@click.option('--format', default="stdout", help="output format e.g. stdout/json/raw")
 @click.option('--output', default='.', help="output path e.g. /tmp")
 def cli(format, output):
     global start
@@ -100,7 +100,11 @@ def callback(result, format, output):
         fpath = os.path.join(output, "report.json")
         with open(fpath, mode="w") as f:
             f.write(jsonpickle.dumps(results))
-
+    elif format == "raw":
+        if len(results) != 0:
+            print(False)
+        else:
+            print(True)
 if __name__ == '__main__':
     cli()
 

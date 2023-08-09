@@ -23,44 +23,65 @@ if [ $1 == "-w" ]; then
     exit
 
 elif [ $1 == "-c" ]; then  
-    xApp_image=$2
-    echo "Checking $xApp_image Registry"
 
-    ret=`docker image ls $xApp_image`
-    if [[ ! $ret =~ $xApp_image ]]; then
-        echo "No such Image"
-        echo "Pulling $xApp_image ..."
-        docker pull $xApp_image
-    fi
+    # get config.json and schema.json
+    
+    CONFIG_JSON=$2
+    SCHEMA_JSON=$3
 
-    echo "Checking Registry Source ... "
+    echo "Retrieving docker images used by xApp"
+    CONTAINER_NUM=$(cat  ${CONFIG_JSON}  | jq -c ".containers" | jq length)
+    INDEX=0
+    CHECK=0
+    while [ $INDEX -lt $CONTAINER_NUM ] 
+    do
+        REGISTRY=$(cat  ${CONFIG_JSON}  | jq -c ".containers[$INDEX].image.registry"| tr -d '"')
+        NAME=$(cat  ${CONFIG_JSON}  | jq -c ".containers[$INDEX].image.name"| tr -d '"')
+        TAG=$(cat  ${CONFIG_JSON}  | jq -c ".containers[$INDEX].image.tag" | tr -d '"')
+    	echo $REGISTRY
+	    echo $NAME
+    	echo $TAG
+        echo "Checking $REGISTRY/$NAME:$TAG  exists or not ...."
+        ret=`docker image inspect $REGISTRY/$NAME:$TAG`
+        if [ "$ret" = "[]" ]; then
+            echo "No such Image"
+            echo "Pulling $REGISTRY/$NAME:$TAG ..."
+    	    docker pull "$REGISTRY/$NAME:$TAG"        
+        fi
+        echo ">>> Checking Registry Source ... "
+        ret=`python3 Image_Security_Module/ImageRegistryCheck.py registry-check $NAME`
+
+        if [ ret == "False" ]; then
+            echo "Registry is not Valid"
+            echo "Do not onboard and install this xApp"
+            echo "Do not use this Docker image for any purpose"
+            exit 1 
+        fi
+        echo ">>> Scanning If Backdoors Within Image ... "
+        ret=`python3 Image_Security_Module/backdoor_scan.py xapp-scan-images $NAME`
+        if [ ret == "False" ]; then
+            echo "Dockerfile contains backdoor"
+            echo "Do not onboard and install this xApp"
+            echo "Do not use this Docker image for any purpose"
+            exit 1 
+        fi
+        
+        echo ">>> Scanning History Instructions in the Image...."
+        ret=`python3 Image_Security_Module/image_history.py xapp-scan-images $NAME`
+        if [ ret == "False" ]; then
+            echo "This Dockerfile contains abnormal history instructions"
+            echo "Do not onboard and install this xApp"
+            echo "Do not use this Docker image for any purpose"
+            exit 1 
+        fi
+        (( INDEX++ ))
+    done
+    # if pass check, onboarding xApp    
+    # if pass check, install xApp
+
 elif [ $1 == "-h" ]; then
     help 
 else
     help 
 fi
-
-
-# extract docker image used by xApp config.json
-#CONTAINER_NUM=$(cat  ${CONFIG_JSON}  | jq -c ".containers" | jq length)
-
-#while [ $INDEX -lt  $CONTAINER_NUM ]
-#do
-#    REGISTRY=$(cat  ${CONFIG_JSON}  | jq -c ".containers[$INDEX].image.registry"| tr -d '"')
-#    NAME=$(cat  ${CONFIG_JSON}  | jq -c ".containers[$INDEX].image.name"| tr -d '"')
-#    TAG=$(cat  ${CONFIG_JSON}  | jq -c ".containers[$INDEX].image.tag" | tr -d '"')
-#        echo $REGISTRY
-#        echo $NAME
-#        echo $TAG
-#        docker pull "$REGISTRY/$NAME:$TAG"
-#    (( INDEX++ ))
-#done
-
-
-
-#python3 Image_Security_Module/ImageRegistryCheck.py registry-check $xApp_image
-
-
-
-
 

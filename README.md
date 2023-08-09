@@ -5,6 +5,15 @@
 
 A command tool to perform the security check to xApp and set up EFK stack for monitoring xApp's behavior.
 
+## Dependencies
+
+```
+Veinmind SDK
+python3
+jq 
+docker 
+```
+
 ## Environment.
 ```
 ✅ Working well in Near-RT RIC Cluster [E Release]

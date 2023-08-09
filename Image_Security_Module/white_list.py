@@ -1,1 +1,1 @@
-white_List = ["harbor.prlab.io", "docker.io"]
+white_List = ["harbor.prlab.io" ]

@@ -15,7 +15,7 @@ decision = []
 # The registry whitelist is only "nexus3.o-ran-sc.org:10002" for now.
 
 @command.group()
-@click.option('--format', default="stdout", help="output format e.g. stdout/json")
+@click.option('--format', default="stdout", help="output format e.g. stdout/raw")
 def cli(format):
     global start
     start = timep.time()
@@ -33,12 +33,16 @@ def registry_check(image):
     else:
         log.info("start scan: " + image.id())   
     # the registry in Registry_List contain 'True', it means the registry != "nexus3.o-ran-sc.org:10002"
+    check = 0
+    print(registry_List)
     for i in registry_List:
-        if "nexus3.o-ran-sc.org:10002" not in i:
-            decision.append(True)
-        else:
+        for allow_registry in white_List:
+            if allow_registry in i:
+                decision.append(True)
+                break
+            check += 1
+        if check == len(white_List):       
             decision.append(False)
-
 
 @cli.resultcallback()
 def callback(result, format ):
@@ -57,9 +61,9 @@ def callback(result, format ):
         print("+---------------------------------------------------------------------------------------------------+")
         print("# ================================================================================================= #")
         pass
-    elif format == "json":
-        pass
-
+    elif format == "raw":
+        for r in decision:
+            print(r == True)
 
 if __name__ == '__main__':
     cli()
