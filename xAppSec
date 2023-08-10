@@ -111,6 +111,7 @@ elif [ $1 == "-c" ]; then
     else
         echo "Successfully install the xApp $XAPP_NAME"
         exit 
+    fi
 # if -h or else options, print help
 else
     help 
