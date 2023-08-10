@@ -22,6 +22,8 @@ if [ $1 == "-w" ]; then
     echo $2
     exit
 
+elif [ $1 == "-h" ]; then
+    help 
 elif [ $1 == "-c" ]; then  
 
     # get config.json and schema.json
@@ -110,8 +112,6 @@ elif [ $1 == "-c" ]; then
         echo "Successfully install the xApp $XAPP_NAME"
         exit 
 # if -h or else options, print help
-elif [ $1 == "-h" ]; then
-    help 
 else
     help 
 fi
