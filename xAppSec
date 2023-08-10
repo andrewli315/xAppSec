@@ -31,6 +31,7 @@ elif [ $1 == "-c" ]; then
 
     echo "Retrieving docker images used by xApp"
     CONTAINER_NUM=$(cat  ${CONFIG_JSON}  | jq -c ".containers" | jq length)
+    XAPP_NAME=$(cat ${CONFIG_JSON} | jq -c ".xapp_name" )
     INDEX=0
     CHECK=0
     while [ $INDEX -lt $CONTAINER_NUM ] 
@@ -42,14 +43,14 @@ elif [ $1 == "-c" ]; then
 	    echo $NAME
     	echo $TAG
         echo "Checking $REGISTRY/$NAME:$TAG  exists or not ...."
-        ret=`docker image inspect $REGISTRY/$NAME:$TAG`
+        ret=$(docker image inspect $REGISTRY/$NAME:$TAG)
         if [ "$ret" = "[]" ]; then
             echo "No such Image"
             echo "Pulling $REGISTRY/$NAME:$TAG ..."
     	    docker pull "$REGISTRY/$NAME:$TAG"        
         fi
         echo ">>> Checking Registry Source ... "
-        ret=`python3 Image_Security_Module/ImageRegistryCheck.py registry-check $NAME`
+        ret=$(python3 Image_Security_Module/ImageRegistryCheck.py registry-check $NAME)
 
         if [ ret == "False" ]; then
             echo "Registry is not Valid"
@@ -58,7 +59,7 @@ elif [ $1 == "-c" ]; then
             exit 1 
         fi
         echo ">>> Scanning If Backdoors Within Image ... "
-        ret=`python3 Image_Security_Module/backdoor_scan.py xapp-scan-images $NAME`
+        ret=$(python3 Image_Security_Module/backdoor_scan.py xapp-scan-images $NAME)
         if [ ret == "False" ]; then
             echo "Dockerfile contains backdoor"
             echo "Do not onboard and install this xApp"
@@ -67,7 +68,7 @@ elif [ $1 == "-c" ]; then
         fi
         
         echo ">>> Scanning History Instructions in the Image...."
-        ret=`python3 Image_Security_Module/image_history.py xapp-scan-images $NAME`
+        ret=$(python3 Image_Security_Module/image_history.py xapp-scan-images $NAME)
         if [ ret == "False" ]; then
             echo "This Dockerfile contains abnormal history instructions"
             echo "Do not onboard and install this xApp"
@@ -77,8 +78,38 @@ elif [ $1 == "-c" ]; then
         (( INDEX++ ))
     done
     # if pass check, onboarding xApp    
-    # if pass check, install xApp
+    dms_cli onboard $CONFIG_JSON $SCHEMA_JSON
 
+    # if pass check, install xApp
+    if [ -z $4 ]; then 
+        echo "No need to install xApp"
+    elif [ $4 == "-i" ]; then
+        echo ">>> Installing xApp ..."
+        dms_cli install $CONFIG_JSON $SCHEMA_JSON
+    fi
+
+
+    sleep 15
+
+    XAPP_NUM=$(kubectl get pods -n ricxapp -o json | jq -c ".items" | jq length)
+    ret=0
+    for (( i=0; i <=XAPP_NUM; i++ ))
+    do 
+        name=$(kubectl get pods -n ricxapp -o json | jq -c ".items" | jq -c ".metadata.labels.app")
+        if [ $name == $XAPP_NAME ]; then
+            ret=1
+            break
+        fi
+
+    done
+    if [ ret == 0 ]; then 
+        echo "Failed to install xApp"
+        echo "Please check the environment or configuration file"
+        exit 1
+    else
+        echo "Successfully install the xApp $XAPP_NAME"
+        exit 
+# if -h or else options, print help
 elif [ $1 == "-h" ]; then
     help 
 else
