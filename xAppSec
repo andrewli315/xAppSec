@@ -87,8 +87,11 @@ elif [ $1 == "-c" ]; then
         echo "No need to install xApp"
         exit
     elif [ $4 == "-i" ]; then
-        echo ">>> Installing xApp ..."
-        dms_cli install $CONFIG_JSON $SCHEMA_JSON
+        if [ -z $5 ]; then
+            echo "NO specify namespace for xApp"
+        else
+            echo ">>> Installing xApp ..."
+            dms_cli install $CONFIG_JSON $SCHEMA_JSON $5
     fi
 
 
