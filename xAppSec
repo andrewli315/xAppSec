@@ -92,6 +92,7 @@ elif [ $1 == "-c" ]; then
         else
             echo ">>> Installing xApp ..."
             dms_cli install $CONFIG_JSON $SCHEMA_JSON $5
+        fi
     fi
 
 
