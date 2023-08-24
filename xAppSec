@@ -8,13 +8,18 @@ help() {
     echo "[OPTIONS]"
     echo "-w : Update registry whitelist for image scanner"
     echo "-c : Check docker images security"
+    echo "     -i : install xApp"
     echo "-h : Help"
+    echo "example: ./xAppSec -c {path_to_config} {path_to_schema}"
+    echo "example: ./xAppSec -c {path_to_config} {path_to_schema} -i {xApp_namespace}"
 }
 
-
-if [ $1 != "-w" ] && [ $1 != "-c" ]; then 
+if [[ -z $1 ]]; then
     help
     exit
+elif [[ $1 != "-w" ]] && [[ $1 != "-c" ]]; then
+    help
+    exit 1
 fi
 
 # Setup whiteList
@@ -27,7 +32,10 @@ elif [ $1 == "-h" ]; then
 elif [ $1 == "-c" ]; then  
 
     # get config.json and schema.json
-    
+    if [[ -z $2 ]] || [[ -z $3 ]]; then
+        help
+	exit 1 
+    fi 
     CONFIG_JSON=$2
     SCHEMA_JSON=$3
 
@@ -91,8 +99,10 @@ elif [ $1 == "-c" ]; then
             echo "NO specify namespace for xApp"
             exit 1
         else
+            # get xApp version
+	    XAPP_VERSION=$(dms_cli get_charts_list | jq -c ".${XAPP_NAME}[0].version")
             echo ">>> Installing xApp ..."
-            dms_cli install $CONFIG_JSON $SCHEMA_JSON $5
+            echo "dms_cli install ${XAPP_NAME} ${XAPP_VERSION} $5"
         fi
     fi
 
