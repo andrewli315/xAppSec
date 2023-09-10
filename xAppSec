@@ -25,6 +25,7 @@ fi
 # Setup whiteList
 if [ $1 == "-w" ]; then
     echo $2
+    sed -i "s/\[.*\]/$2/" Image_Security_Module/white_list.py
     exit
 
 elif [ $1 == "-h" ]; then
@@ -42,9 +43,11 @@ elif [ $1 == "-c" ]; then
     echo "Retrieving docker images used by xApp"
     CONTAINER_NUM=$(cat  ${CONFIG_JSON}  | jq -c ".containers" | jq length)
     XAPP_NAME=$(cat ${CONFIG_JSON} | jq -c ".xapp_name" )
+
     INDEX=0
     CHECK=0
-    while [ $INDEX -lt $CONTAINER_NUM ] 
+    
+    while [[ $INDEX -lt $CONTAINER_NUM ]] 
     do
         REGISTRY=$(cat  ${CONFIG_JSON}  | jq -c ".containers[$INDEX].image.registry"| tr -d '"')
         NAME=$(cat  ${CONFIG_JSON}  | jq -c ".containers[$INDEX].image.name"| tr -d '"')
